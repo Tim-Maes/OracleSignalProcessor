@@ -57,8 +57,6 @@ public abstract class DatabaseSignalProcessor : IHostedService, IDisposable
         _listener.Start();
     }
 
-    protected abstract Task<IEnumerable<string>> GetSignalNames();
-
     protected abstract void ProcessSignal(string name, string message);
 
     protected abstract void ErrorOccurred(Exception exception);
