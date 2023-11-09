@@ -1,26 +1,29 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Microsoft.Extensions.Options;
+using OracleSignalProcessor.AlertListener;
+using OracleSignalProcessor.Options;
 using OracleSignalProcessor.SignalProcessor;
 
 namespace OracleSignalProcessor
 {
     internal class DatabaseTestListener : DatabaseSignalProcessor
     {
-        ///TODO: Remove the need for this constructor.
-        public DatabaseTestListener(IServiceScopeFactory scopeFactory) : base(scopeFactory) { }
+        public DatabaseTestListener(IOracleAlertListenerFactory factory, IOptions<SignalProcessorOptions> options)
+            : base(factory, options) { }
 
         protected override void ErrorOccurred(Exception exception)
         {
-            throw new NotImplementedException();
+            // Do stuff when error occurs
         }
 
         protected override void ProcessSignal(string name, string message)
         {
-            throw new NotImplementedException();
+            // Do stuff when dbms_signal sends a alert
+            // Example: send notification to UI with SignalR
         }
 
         protected override void Reconnecting()
         {
-            throw new NotImplementedException();
+            // Do stuff on reconnect
         }
     }
 }

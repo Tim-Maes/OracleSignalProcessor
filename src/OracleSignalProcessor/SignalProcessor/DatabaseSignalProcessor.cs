@@ -1,5 +1,4 @@
-﻿using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
+﻿using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Options;
 using OracleSignalProcessor.AlertListener;
 using OracleSignalProcessor.Options;
@@ -12,22 +11,19 @@ public abstract class DatabaseSignalProcessor : IHostedService, IDisposable
     private readonly string _connectionString;
     private readonly string _signalName;
     private IOracleAlertListener _listener;
-    private readonly IServiceScopeFactory _scopeFactory;
-
     private bool _isInitialized = false;
 
-    protected DatabaseSignalProcessor(IServiceScopeFactory scopeFactory)
+    protected DatabaseSignalProcessor(IOracleAlertListenerFactory listenerFactory, IOptions<SignalProcessorOptions> options)
     {
-        _scopeFactory = scopeFactory;
+        _listenerFactory = listenerFactory;
+        _signalName = options.Value.SignalName;
+        _connectionString = options.Value.ConnectionString;
     }
 
     public void Dispose()
     {
-        using var scope = _scopeFactory.CreateScope();
-        var listenerFactory = scope.ServiceProvider.GetRequiredService<IOracleAlertListenerFactory>();
-        var options = scope.ServiceProvider.GetRequiredService<IOptions<SignalProcessorOptions>>();
-
-        _listener = listenerFactory.CreateListener(options.Value.ConnectionString, options.Value.SignalName);
+        if (_listener == null)
+            return;
 
         _listener.SignalReceived -= ProcessSignal;
         _listener.ErrorOccurred -= ErrorOccurred;
