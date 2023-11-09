@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using OracleSignalProcessor.AlertListener;
 using OracleSignalProcessor.Options;
 using OracleSignalProcessor.SignalProcessor;
@@ -7,23 +8,30 @@ namespace OracleSignalProcessor
 {
     internal class DatabaseTestListener : DatabaseSignalProcessor
     {
-        public DatabaseTestListener(IOracleAlertListenerFactory factory, IOptions<SignalProcessorOptions> options)
-            : base(factory, options) { }
+        private readonly ILogger<DatabaseTestListener> _logger;
+
+        public DatabaseTestListener(
+            IOracleAlertListenerFactory factory,
+            IOptions<SignalProcessorOptions> options,
+            ILogger<DatabaseTestListener> logger)
+            : base(factory, options)
+        {
+            _logger = logger;
+        }
 
         protected override void ErrorOccurred(Exception exception)
         {
-            // Do stuff when error occurs
+            _logger.LogError($"An error occured: {exception}");
         }
 
         protected override void ProcessSignal(string name, string message)
         {
-            // Do stuff when dbms_signal sends a alert
-            // Example: send notification to UI with SignalR
+            _logger.LogInformation($"Received signal {name} with message: {message}");
         }
 
         protected override void Reconnecting()
         {
-            // Do stuff on reconnect
+            _logger.LogInformation("Reconnecting signal processor...");
         }
     }
 }
