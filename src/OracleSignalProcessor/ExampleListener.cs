@@ -6,14 +6,14 @@ using OracleSignalProcessor.SignalProcessor;
 
 namespace OracleSignalProcessor
 {
-    internal class DatabaseTestListener : DatabaseSignalProcessor
+    internal class ExampleListener : DatabaseSignalProcessor
     {
-        private readonly ILogger<DatabaseTestListener> _logger;
+        private readonly ILogger<ExampleListener> _logger;
 
-        public DatabaseTestListener(
+        public ExampleListener(
             IOracleAlertListenerFactory factory,
             IOptions<SignalProcessorOptions> options,
-            ILogger<DatabaseTestListener> logger)
+            ILogger<ExampleListener> logger)
             : base(factory, options)
         {
             _logger = logger;
