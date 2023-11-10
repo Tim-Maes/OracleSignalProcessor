@@ -34,6 +34,7 @@ Create a service that implements the IOracleSignalSignalProcessor interface
 ```
 
 Register your service
+
 ```csharp
     services.AddOracleSignalProcessor<ExampleProcessor>(options => 
     {
