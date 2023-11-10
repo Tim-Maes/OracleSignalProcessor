@@ -6,7 +6,7 @@ Example project for listening to Oracle database alerts and processing DBMS sign
 
 Create a service that implements the IOracleSignalSignalProcessor interface
 
-```
+```csharp
     public class ExampleProcessor : IOracleSignalProcessor
     {
         private readonly ILogger<ExampleListener> _logger;
@@ -34,7 +34,7 @@ Create a service that implements the IOracleSignalSignalProcessor interface
 ```
 
 Register your service
-```
+```csharp
     services.AddOracleSignalProcessor<ExampleProcessor>(options => 
     {
         options.ConnectionString = "YourConnectionString";
