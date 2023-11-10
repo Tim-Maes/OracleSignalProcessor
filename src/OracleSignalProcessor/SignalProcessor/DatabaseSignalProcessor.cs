@@ -5,19 +5,35 @@ using OracleSignalProcessor.Options;
 
 namespace OracleSignalProcessor.SignalProcessor;
 
-public abstract class DatabaseSignalProcessor : IHostedService, IDisposable
+public abstract class DatabaseSignalProcessor<TProcessor>
+    : IHostedService, IDisposable
+    where TProcessor : IOracleSignalProcessor
 {
     private readonly IOracleAlertListenerFactory _listenerFactory;
+    private readonly TProcessor _signalProcessor;
     private readonly string _connectionString;
     private readonly string _signalName;
     private IOracleAlertListener _listener;
     private bool _isInitialized = false;
 
-    protected DatabaseSignalProcessor(IOracleAlertListenerFactory listenerFactory, IOptions<SignalProcessorOptions> options)
+    protected DatabaseSignalProcessor(
+        IOracleAlertListenerFactory listenerFactory,
+        TProcessor signalProcessor,
+        IOptions<SignalProcessorOptions> options)
     {
         _listenerFactory = listenerFactory;
+        _signalProcessor = signalProcessor;
         _signalName = options.Value.SignalName;
         _connectionString = options.Value.ConnectionString;
+    }
+
+    private async Task Init()
+    {
+        _listener = _listenerFactory.CreateListener(_connectionString, _signalName);
+        _listener.SignalReceived += ProcessSignal;
+        _listener.ErrorOccurred += ErrorOccurred;
+        _listener.Reconnecting += Reconnecting;
+        _listener.Start();
     }
 
     public void Dispose()
@@ -48,20 +64,12 @@ public abstract class DatabaseSignalProcessor : IHostedService, IDisposable
         await Init();
     }
 
-    private async Task Init()
-    {
-        _listener = _listenerFactory.CreateListener(_connectionString, _signalName);
-        _listener.SignalReceived += ProcessSignal;
-        _listener.ErrorOccurred += ErrorOccurred;
-        _listener.Reconnecting += Reconnecting;
-        _listener.Start();
-    }
+    private void ProcessSignal(string name, string message) => _signalProcessor.ProcessSignal(name, message);
 
-    protected abstract void ProcessSignal(string name, string message);
+    private void ErrorOccurred(Exception exception) => _signalProcessor.OnError(exception);
 
-    protected abstract void ErrorOccurred(Exception exception);
+    private void Reconnecting() => _signalProcessor.OnReconnect();
 
-    protected abstract void Reconnecting();
 
     public async Task StartAsync(CancellationToken cancellationToken)
     {
@@ -77,4 +85,13 @@ public abstract class DatabaseSignalProcessor : IHostedService, IDisposable
         Dispose();
         return Task.CompletedTask;
     }
+}
+
+public interface IOracleSignalProcessor
+{
+    void ProcessSignal(string name, string message);
+
+    void OnError(Exception exception);
+
+    void OnReconnect();
 }

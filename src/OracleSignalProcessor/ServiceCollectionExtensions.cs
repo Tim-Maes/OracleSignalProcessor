@@ -11,14 +11,14 @@ public static class ServiceCollectionExtensions
     public static IServiceCollection AddDatabaseSignalProcessor<TProcessor, TOptions>(
         this IServiceCollection services,
         Action<TOptions> setupAction)
-        where TProcessor : DatabaseSignalProcessor
+        where TProcessor : class, IOracleSignalProcessor
         where TOptions : SignalProcessorOptions, new()
     {
         services.Configure(setupAction);
         services.AddSingleton<IOracleAlertListenerFactory, OracleAlertListenerFactory>();
-        services.AddSingleton<DatabaseSignalProcessor, TProcessor>();
-
-        services.AddHostedService(provider => (IHostedService)provider.GetRequiredService<DatabaseSignalProcessor>());
+        services.AddSingleton<IOracleAlertListener, OracleAlertListener>();
+        services.AddSingleton<IOracleSignalProcessor, TProcessor>();
+        services.AddSingleton<IHostedService, DatabaseSignalProcessor<TProcessor>>();
 
         return services;
     }
